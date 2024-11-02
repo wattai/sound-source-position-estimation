@@ -19,9 +19,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff~=0.7.1",
-    "pre-commit~=3.5.0"
+    "pre-commit~=3.5.0",
+    "pytest~=8.3.3",
 ]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = ["sse"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
