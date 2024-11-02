@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy as sp
+import matplotlib.pyplot as plt
 
 
 # CSP(Cross-power Spectrum Phase analysis:白色化相互相関法)を用いたDOA計算
@@ -33,7 +33,7 @@ def doa_csp(x, fs, v_wave, dist_mic):
         elif delta > len(x) / 2:
             nearest_dir = 1
         # 到達時間差(DOA)修正
-        if nearest_dir == False:
+        if not nearest_dir:
             tau = -1.0 * (len(x) / fs - tau)
         # 音源方向推定
         z = v_wave * tau / dist_mic
@@ -45,8 +45,6 @@ def doa_csp(x, fs, v_wave, dist_mic):
 
     return tau, nearest_dir, theta, CSP
 
-
-import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     fs = 44100
