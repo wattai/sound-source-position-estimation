@@ -55,7 +55,9 @@ class MusicSoundSourceLocator(SoundSourceLocatorBase):
             X_freq.conj().reshape(-1, self.N_ch, 1) @ X_freq.reshape(-1, 1, self.N_ch)
         ) / (X_freq.shape[0] / self.fs)
 
-        self.eigval, self.eigvec = np.linalg.eig(self.R)
+        # self.eigval, self.eigvec = np.linalg.eig(self.R)
+        self.eigvec, self.eigval, _ = np.linalg.svd(self.R)
+
         self.minvec = self.eigvec[:, :, -1].reshape(-1, self.N_ch, 1)
 
         self.thetas = np.linspace(-np.pi / 2, np.pi / 2, self.N_theta)
