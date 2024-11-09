@@ -8,7 +8,7 @@ from sse.base import SoundSourceLocatorBase
 class MusicSoundSourceLocator(SoundSourceLocatorBase):
     """Music Sound Source Locator.
 
-    Notes:
+    References:
         https://www.fujipress.jp/main/wp-content/themes/Fujipress/pdf_subscribed.php
 
     """
