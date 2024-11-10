@@ -210,9 +210,7 @@ if __name__ == "__main__":
     c = 340  # wave speed. [m/sec]
     d = 0.1  # width for mic. array. [m]
 
-    theta = -6  # 0~180 [deg]
-    # theta = 75  # 0~180 [deg]
+    theta = 75  # 0~180 [deg]
     N_fft = 2048
     simu_csp(theta=90 - theta, fs=fs, N_fft=N_fft, c=c, d=d)
     simu_music(theta=90 - theta, fs=fs, N_fft=N_fft, c=c, d=d, N_theta=180 + 1)
-    # simu_music(theta=theta, fs=fs, N_fft=N_fft, c=c, d=d, N_theta=180 + 1)
