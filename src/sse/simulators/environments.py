@@ -42,12 +42,34 @@ class Signal(BaseModel):
     sampling_frequency: float
 
 
+class Position3D(BaseModel):
+    r: float
+    theta: float
+    phi: float
+
+
 class BaseDevice(abc.ABC):
     pass
 
 
 class BaseSource(BaseDevice):
-    pass
+    @abc.abstructmethod
+    def ring(self) -> Signal:
+        pass
+
+
+class Source(BaseSource):
+    def __init__(
+        self,
+        signal: Signal,
+        position: Position3D,
+    ):
+        self.signal = signal
+        self.position = position
+
+    def ring() -> Signal:
+        """WIP."""
+        pass
 
 
 class BaseMicrophone(BaseDevice):
