@@ -5,6 +5,7 @@ import abc
 
 from pydantic import BaseModel
 import numpy as np
+import soundfile as sf
 
 
 def make_signals(num_sources: int, num_mics: int):
@@ -61,15 +62,35 @@ class BaseSource(BaseDevice):
 class Source(BaseSource):
     def __init__(
         self,
-        signal: Signal,
         position: Position3D,
+        signal: Signal,
     ):
         self.signal = signal
         self.position = position
 
-    def ring() -> Signal:
-        """WIP."""
+    def ring(self) -> Signal:
+        return self.signal
+
+
+def file_to_signals(filepath: str) -> list[Signal]:
+    return sf.read(filepath)
+
+
+class BaseSignalGenerator(abc.ABC):
+    @abc.abstractmethod
+    def generate(self, sampling_frequency: float) -> Signal:
         pass
+
+
+class SineSignalGenerator(BaseSignalGenerator):
+    def __init__(
+        self,
+        frequency: float,
+    ):
+        self.frequeny = frequency
+
+    def generate(self, sampling_frequency: float) -> Signal:
+        return np.sin()
 
 
 class BaseMicrophone(BaseDevice):
