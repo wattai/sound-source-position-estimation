@@ -216,19 +216,8 @@ def euclidean_distance(p1, p2):
 
 
 def delay(signal: Signal, distance: float, sound_speed: float) -> Signal:
-    # num_delay_points を整数にキャスト
     num_delay_points = int(round(signal.sampling_frequency * (distance / sound_speed)))
-
-    # スライシングに整数を使用
     return Signal(
         values=np.pad(signal.values[num_delay_points:], (0, num_delay_points)),
         sampling_frequency=signal.sampling_frequency,
     )
-
-
-# def delay(signal: Signal, distance: float, sound_speed: float) -> Signal:
-#     num_delay_points = signal.sampling_frequency * (distance / sound_speed)
-#     return Signal(
-#         values=np.pad(signal.values[num_delay_points:], ((0, num_delay_points))),
-#         sampling_frequency=signal.sampling_frequency,
-#     )
