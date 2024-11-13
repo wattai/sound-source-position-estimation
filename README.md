@@ -1,3 +1,5 @@
+[![CI](https://github.com/wattai/sound-source-position-estimation/actions/workflows/ci.yml/badge.svg)](https://github.com/wattai/sound-source-position-estimation/actions/workflows/ci.yml)
+
 # WIP; Sound Source Estimator
 
 [![CI](https://github.com/wattai/sound-source-position-estimation/actions/workflows/ci.yml/badge.svg)](https://github.com/wattai/sound-source-position-estimation/actions/workflows/ci.yml)
