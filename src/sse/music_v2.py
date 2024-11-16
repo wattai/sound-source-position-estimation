@@ -93,13 +93,13 @@ class MusicSoundSourceLocator(SoundSourceLocatorBase):
         outs = []
         for theta in thetas:
             a = self._calc_alpha2(theta, freqs=freqs).reshape(-1, 1, self.N_ch)
-            print("a.shape", a.shape)
-            print("self.minvec.shape", self.minvec.shape)
+            # print("a.shape", a.shape)
+            # print("self.minvec.shape", self.minvec.shape)
             # print("np.linalg.vector_norm(a, axis=1, ord=2).shape", np.linalg.vector_norm(a, axis=1, ord=2).shape)
             upper = np.abs((a.conj() @ self.minvec))[:, 0, :] ** 2
             lower = np.linalg.vector_norm(a, axis=2, ord=2)
-            print("upper.shape", upper.shape)
-            print("lower.shape", lower.shape)
+            # print("upper.shape", upper.shape)
+            # print("lower.shape", lower.shape)
             outs.append(1 / np.sum(upper / lower, axis=1))
         return np.array(outs)
 
