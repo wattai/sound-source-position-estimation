@@ -33,6 +33,7 @@ def make_dummy_signals(
         theta: Which direction the signal comes from [rad].
         fs: Sampling frequency [Hz].
         d: Distance between mics [m].
+        time_length: Time length of signals [sec.].
         medium: Medium which sounds pass through.
 
     Returns:
