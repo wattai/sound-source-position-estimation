@@ -1,5 +1,8 @@
 # WIP; Sound Source Estimator
 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+![Codecov](https://img.shields.io/codecov/c/github/wattai/sound-source-position-estimation)
+
 Brief description of the project and what it aims to accomplish.
 
 ## Table of Contents
