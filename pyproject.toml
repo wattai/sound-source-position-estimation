@@ -13,6 +13,8 @@ authors = [
 ]
 dependencies = [
     "numpy~=2.1.2",
+    "scipy~=1.14.1",
+    "soundfile~=0.12.1",
     "matplotlib~=3.9.2",
     "pydantic~=2.9.2",
 ]
@@ -22,6 +24,7 @@ dev = [
     "ruff~=0.7.1",
     "pre-commit~=3.5.0",
     "pytest~=8.3.3",
+    "pytest-cov",
 ]
 
 [tool.setuptools]
