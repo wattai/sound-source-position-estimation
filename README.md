@@ -24,3 +24,9 @@ pip install -e ".[dev]"
 ```shell
 pre-commit install
 ```
+
+Run tests
+
+```shell
+pytest tests
+```
