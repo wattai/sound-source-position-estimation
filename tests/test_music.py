@@ -1,67 +1,147 @@
 # -*- coding: utf-8 -*-
 
+import pytest
+
 import numpy as np
 
 from sse.music_v2 import MusicSoundSourceLocator
+from sse.simulators.environments import (
+    Observer,
+    Air,
+    Microphone,
+    Source,
+    Position3D,
+    SineSignalGenerator,
+)
+
+SAMPLING_FREQUENCY = 16000  # [Hz]
+SOUND_SPEED = Air().sound_speed  # [m/s]
+GAP_WIDTH_BETWEEN_MICS = 5.0  # [m]
+SIGNAL_TIME_LENGTH = 5.0  # [sec.]
 
 
 def make_dummy_signals(
-    theta=15.0,
-    fs=16000,
-    c=340,
-    d=1.0,
+    theta: float,
+    fs: float,
+    d: float,
+    time_length: float,
+    medium=Air(),
 ) -> np.ndarray:
-    """_summary_
+    """Return 2ch dummy signals.
 
     Args:
-        theta (float, optional): _description_. Defaults to 15.0.
-        fs (int, optional): _description_. Defaults to 16000.
-        N_fft (int, optional): _description_. Defaults to 128.
-        c: Sound speed [m/sec]. Defaults to 340.
-        d: Distance between mics [m]. Defaults to 1.0.
+        theta: Which direction the signal comes from [rad].
+        fs: Sampling frequency [Hz].
+        d: Distance between mics [m].
+        time_length: Time length of signals [sec.].
+        medium: Medium which sounds pass through.
 
     Returns:
-        np.ndarray: _description_
+        Sound waves shaped as: [num_samples, num_channels].
     """
-    tdoa = d * np.sin(np.deg2rad(theta)) / c
-    # tdoa = d * np.cos(np.deg2rad(theta)) / c
-    print("tdoa", tdoa)
 
-    T = 0.2  # [sec]
-    # width = N_fft // 2
-    num_points_of_tdoa_width = int(tdoa * fs)  # point of TDOA.
-    # t = np.linspace(0, N_fft + 2 * width - 1, N_fft + 2 * width) / fs
-    t = np.linspace(0, int(fs * T - 1), int(fs * T)) / fs  # base time.
-    # t1 = t[width + num_points_of_tdoa_width : width + N_fft + num_points_of_tdoa_width]
-    # t2 = t[width : width + N_fft]
-    t1 = t[num_points_of_tdoa_width:]
-    t2 = t[:-num_points_of_tdoa_width]
-    print("t1.shape", t1.shape)
-    print("t2.shape", t2.shape)
-    x1 = np.sin(2 * np.pi * 5000 * t1)[:, None]
-    x2 = np.sin(2 * np.pi * 5000 * t2)[:, None]
-    x = np.c_[x1, x2]
-    # x = np.c_[x1 + np.random.randn(*x1.shape) * 0.05, x2 + np.random.randn(*x2.shape) * 0.05]
-
-    # xs = np.random.randn(len(t))[:, None]
-    # x1 = xs[num_points_of_tdoa_width:]
-    # t2 = xs[:-num_points_of_tdoa_width]
-    # x = np.c_[x1, x2]
-    return x
+    obs = Observer(
+        sources=[
+            Source(
+                position=Position3D(r=100, theta=theta, phi=0),
+                signal=SineSignalGenerator(frequency=3000.2).generate(
+                    sampling_frequency=fs,
+                    time_length=time_length,
+                ),
+            )
+        ],
+        microphones=[
+            Microphone(
+                position=Position3D(r=d / 2, theta=0, phi=0),
+                sampling_frequency=fs,
+            ),
+            Microphone(
+                position=Position3D(r=d / 2, theta=np.pi, phi=0),
+                sampling_frequency=fs,
+            ),
+        ],
+        medium=medium,
+    )
+    outs = obs.ring_sources()
+    return np.c_[outs[0].values, outs[1].values]
 
 
 class TestMusicSoundSourceLocator:
-    def test_fit_transform(self):
+    @pytest.mark.parametrize("theta", [60])
+    def test_fit_transform(self, theta: float):
+        x = make_dummy_signals(
+            theta=theta / 180 * np.pi,
+            fs=SAMPLING_FREQUENCY,
+            d=GAP_WIDTH_BETWEEN_MICS,
+            time_length=10.0,
+        )
         self.locator = MusicSoundSourceLocator(
-            fs=16000,
-            d=0.1,
+            fs=SAMPLING_FREQUENCY,
+            d=GAP_WIDTH_BETWEEN_MICS,
             N_theta=180 + 1,
         )
-        X = make_dummy_signals(
-            theta=40.0,
-            fs=16000,
-            d=0.1,
+        predicted_theta = self.locator.fit_transform(X=x)
+        print("predicted_theta (MUSIC): ", predicted_theta)
+
+
+class TestCSPSoundSourceLocator:
+    @pytest.mark.parametrize("theta", [30, 60, 90, 120, 150])
+    def test_accuracy(
+        self,
+        theta: float,
+        acceptable_error_in_deg: float = 5.0,
+    ):
+        x = make_dummy_signals(
+            theta=theta / 180 * np.pi,
+            fs=SAMPLING_FREQUENCY,
+            d=GAP_WIDTH_BETWEEN_MICS,
+            time_length=SIGNAL_TIME_LENGTH,
         )
-        predicted_theta = self.locator.fit_transform(X=X)
-        print("predicted_theta", predicted_theta)
-        # np.testing.assert_allclose(predicted_theta, 40.726257)
+        predicted_theta = estimate_theta_by_csp(
+            x1=x[:, 0],
+            x2=x[:, 1],
+            fs=SAMPLING_FREQUENCY,
+            c=SOUND_SPEED,
+            d=GAP_WIDTH_BETWEEN_MICS,
+        )
+        print("predicted_theta (CSP): ", predicted_theta)
+        assert (predicted_theta - theta) ** 2 < acceptable_error_in_deg
+
+
+def estimate_theta_by_csp(
+    x1: np.ndarray,
+    x2: np.ndarray,
+    fs: float = 16000,
+    c: float = 343.3,
+    d: float = 0.1,
+) -> float:
+    return tdoa2deg(calc_tdoa(x1, x2) / fs, c=c, d=d)
+
+
+def calc_tdoa(x1: np.ndarray, x2: np.ndarray) -> float:
+    assert len(x1) == len(x2)
+    estimated_delay = calc_csp_coefs(x1=x1, x2=x2).argmax() - len(x1)
+    return estimated_delay
+
+
+def calc_csp_coefs(x1: np.ndarray, x2: np.ndarray) -> np.ndarray:
+    phi = np.correlate(x2, x1, mode="full")
+    PHI = np.fft.fft(phi)
+    csp = np.fft.fft(PHI / np.abs(PHI)).real
+    return csp
+
+
+def tdoa2deg(
+    tdoa: float,
+    c: float = 343.3,
+    d: float = 0.1,
+) -> float:
+    return np.rad2deg(np.arccos(np.clip(tdoa * c / d, -1, 1)))
+
+
+def deg2tdoa(
+    deg: float,
+    c: float = 343.3,
+    d: float = 0.1,
+) -> float:
+    return d * np.cos(np.deg2rad(deg)) / c
